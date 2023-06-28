@@ -84,7 +84,7 @@ public class ObjectDetection : MonoBehaviour
             {
                 string position = sr.ReadLine();
                 string[] posSlit = position.Split(' ');
-                GameObject obj = Instantiate(objPrefab, new Vector3(float.Parse(posSlit[0]), float.Parse(posSlit[1]), float.Parse(posSlit[2])) * range, Quaternion.identity);
+                GameObject obj = Instantiate(objPrefab, new Vector3(float.Parse(posSlit[0]), float.Parse(posSlit[1]), float.Parse(posSlit[2])) * range, Quaternion.Euler(90f, 0f, 0f));
                 obj.transform.parent = gameObject.transform;
                 objList.Add(obj);
             }

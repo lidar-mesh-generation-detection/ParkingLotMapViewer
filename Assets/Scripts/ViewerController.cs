@@ -1,39 +1,62 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class ViewerController : MonoBehaviour
 {
-    private Vector2 touchStart;
-    private Vector2 touchPrevious;
-    public float moveSpeed = 0.1f;
-    public float rotationSpeed = 0.5f;
+    public float speed;
+    public float maxSpeed;
+    public VariableJoystick leftJoystick;
+    public VariableJoystick rightJoystick;
+    public Rigidbody rb;
+    public Scrollbar scrollbar;
+    public float scrollSpeed = 5f;
+    public float minY = -5f;
+    public float maxY = 5f;
 
-    void Update()
+    private Vector3 originPosition;
+    private Quaternion originRotation;
+    private float originScrollbarValue;
+
+    private void Start()
     {
-        // 터치 입력 처리
-        if (Input.touchCount == 1)
+        originPosition = transform.position;
+        originRotation = transform.rotation;
+        originScrollbarValue = scrollbar.value;
+    }
+
+    public void ClickReset()
+    {
+        transform.position = originPosition;
+        transform.rotation = originRotation;
+        scrollbar.value = originScrollbarValue;
+    }
+
+    private void Update()
+    {
+        float scrollValue = scrollbar.value; // 스크롤 UI의 값을 가져옴
+
+        // 오브젝트의 새로운 위치를 계산
+        float targetY = Mathf.Lerp(minY, maxY, scrollValue);
+
+        // 새로운 위치로 오브젝트를 이동
+        transform.position = new Vector3(transform.position.x, targetY, transform.position.z);
+    }
+
+    public void FixedUpdate()
+    {
+        Vector3 direction = Vector3.left * leftJoystick.Vertical + Vector3.forward * leftJoystick.Horizontal;
+        Vector3 targetVelocity = direction * speed;
+
+        // 현재 속도가 제한 값을 초과하지 않는 경우에만 목표 속도로 설정
+        if (rb.velocity.magnitude <= maxSpeed)
         {
-            Touch touch = Input.GetTouch(0);
-
-            // 터치 시작 시점
-            if (touch.phase == TouchPhase.Began)
-            {
-                touchStart = touch.position;
-                touchPrevious = touch.position;
-            }
-            // 터치 이동 중
-            else if (touch.phase == TouchPhase.Moved)
-            {
-                // 이동 벡터 계산
-                Vector2 touchDelta = touch.position - touchStart;
-                Vector3 moveVector = new Vector3(-touchDelta.x, 0f, -touchDelta.y) * moveSpeed;
-                transform.position += moveVector;
-
-                // 회전
-                float rotationDelta = touchDelta.x * rotationSpeed;
-                transform.Rotate(Vector3.up, rotationDelta, Space.World);
-
-                touchPrevious = touch.position;
-            }
+            rb.velocity = targetVelocity;
         }
+
+        // 오브젝트를 회전시킴
+        float rotationSpeedLR = rightJoystick.Horizontal * scrollSpeed;
+        float rotationSpeedUD = rightJoystick.Vertical * scrollSpeed;
+        transform.Rotate(Vector3.up, rotationSpeedLR * Time.fixedDeltaTime);
+        transform.Rotate(Vector3.right, rotationSpeedUD * Time.fixedDeltaTime);
     }
 }
